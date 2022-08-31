@@ -1,5 +1,6 @@
 // ignore_for_file: file_names
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -18,8 +19,7 @@ class PaginationPage extends StatefulWidget {
 
 // pages count
 int totalNoOfPages = 0;
-
-List<int> _userId = [9, 30];
+int i = 0;
 
 // controller
 final listViewController = ScrollController();
@@ -32,6 +32,7 @@ bool starFilled = false;
 bool starOulined = true;
 bool progress = false;
 
+List<dynamic> shortlistedIds = [];
 List<Datum> _profileMatchModel = [];
 
 int userId = 0;
@@ -56,6 +57,8 @@ class _PaginationPageState extends State<PaginationPage> {
 
   @override
   void dispose() {
+    shortlistedIds = [];
+    i = 0;
     super.dispose();
     // _userId = [];
     //listViewController.dispose();
@@ -88,15 +91,29 @@ class _PaginationPageState extends State<PaginationPage> {
                   if (index < _profileMatchModel.length) {
                     return Material(
                       child: InkWell(
-                        onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => DetailScreen(
-                                      _profileMatchModel[index],
-                                      profileImage: _profileMatchModel[index]
-                                          .userBasicInfo
-                                          .imageWithPath,
-                                    ))),
+                        onTap: () {
+                          bool isHere = false;
+                          for (var element in shortlistedIds) {
+                            if (element ==
+                                _profileMatchModel[index]
+                                    .userBasicInfo
+                                    .userId) {
+                              isHere = true;
+                            }
+                          }
+                          // print(isHere);
+
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => DetailScreen(
+                                        _profileMatchModel[index],
+                                        profileImage: _profileMatchModel[index]
+                                            .userBasicInfo
+                                            .imageWithPath,
+                                        value: isHere,
+                                      )));
+                        },
                         child: ListTile(
                           leading: SizedBox(
                             height: 150,
@@ -120,9 +137,7 @@ class _PaginationPageState extends State<PaginationPage> {
                               .userReligeonInfo
                               .belongsToCaste
                               .casteName),
-                          trailing: _userId[
-                                      index >= _userId.length ? 0 : index] !=
-                                  _profileMatchModel[index].userBasicInfo.userId
+                          trailing: shortlistedIds.isEmpty
                               ? ElevatedButton(
                                   style: ElevatedButton.styleFrom(
                                     primary: Colors.white,
@@ -145,7 +160,45 @@ class _PaginationPageState extends State<PaginationPage> {
                                         fontWeight: FontWeight.bold),
                                   ),
                                 )
-                              : Text("Shortlisted"),
+                              : shortlistedIds[_profileMatchModel[index]
+                                                  .userBasicInfo
+                                                  .userId ==
+                                              shortlistedIds[
+                                                  i == shortlistedIds.length
+                                                      ? getI(j: i)
+                                                      : i]
+                                          ? getI(j: i)
+                                          : i] !=
+                                      _profileMatchModel[index]
+                                          .userBasicInfo
+                                          .userId
+                                  ? ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        primary: Colors.white,
+                                        side: const BorderSide(
+                                            width: 2, color: Color(0xFF2e7d32)),
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(5)),
+                                      ),
+                                      onPressed: () {
+                                        postUserData(
+                                            context: context,
+                                            id: _profileMatchModel[index]
+                                                .userBasicInfo
+                                                .userId);
+                                      },
+                                      child: const Text(
+                                        'Shortlist',
+                                        style: TextStyle(
+                                            color: Color(0xFF2e7d32),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.done_outline,
+                                      color: Colors.green,
+                                    ),
                         ),
                       ),
                     );
@@ -190,13 +243,23 @@ class _PaginationPageState extends State<PaginationPage> {
         });
       }
       if (res.statusCode == 200) {
-        //print(res.body);
-
         if (pageNumber == 1) {
           if (mounted) {
             setState(() {
               ProfileListModel body = profileListModelFromJson(resBody);
-              _profileMatchModel = body.data.data;
+              shortlistedIds = body.shortListIds
+                  .map((e) => int.parse(e['user_id']))
+                  .toList();
+              shortlistedIds = shortlistedIds..sort((a, b) => a.compareTo(b));
+              log("s" + shortlistedIds.toString());
+              setState(() {
+                _profileMatchModel = body.data.data;
+              });
+
+              log(_profileMatchModel
+                  .map((e) => e.userBasicInfo.userId)
+                  .toList()
+                  .toString());
               totalNoOfPages = body.data.total;
               //print(totalNoOfPages.toString());
             });
@@ -240,6 +303,19 @@ class _PaginationPageState extends State<PaginationPage> {
           content: Text(resBody['message']),
         ),
       );
+      List replacingId = shortlistedIds;
+      //shortlistedIds = [];
+      replacingId.add(id);
+      i == 0 ? 0 : i++;
+
+      replacingId = replacingId..sort((a, b) => a.compareTo(b));
+      shortlistedIds = replacingId;
+      setState(() {});
+      log("replacing id" + replacingId.toString());
+      // setState(() {
+      //   shortlistedIds.add(id);
+      //   shortlistedIds = shortlistedIds..sort((a, b) => a.compareTo(b));
+      // });
       //print(responseString);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -248,6 +324,24 @@ class _PaginationPageState extends State<PaginationPage> {
         ),
       );
       //print(response.statusCode);
+    }
+  }
+
+  int getI({required j}) {
+    if (i == 0) {
+      //i = 0;
+      log(shortlistedIds.toString());
+      log("greater" + i.toString());
+
+      return i++;
+    } else if (i != 0 && i == shortlistedIds.length) {
+      i = 0;
+      log(shortlistedIds.toString());
+      log("greaterThan" + i.toString());
+      return i;
+    } else {
+      log("lower" + i.toString());
+      return i++;
     }
   }
 }

@@ -18,7 +18,9 @@ import '../../Pages/ReligionInfoPage.dart';
 class DetailScreen extends StatefulWidget {
   Datum profileModel;
   String? profileImage;
-  DetailScreen(this.profileModel, {Key? key, required this.profileImage})
+  bool value;
+  DetailScreen(this.profileModel,
+      {Key? key, required this.profileImage, required this.value})
       : super(key: key);
 
   @override
@@ -68,16 +70,18 @@ class _DetailScreenState extends State<DetailScreen> {
           backgroundColor: Colors.white,
           centerTitle: false,
           actions: [
-            Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: ElevatedButton(
-                  onPressed: () {
-                    shortlistUser(
-                        context: context,
-                        id: widget.profileModel.basicPartnerInfo.userId);
-                  },
-                  child: const Text("Shortlist")),
-            ),
+            widget.value == false
+                ? Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: ElevatedButton(
+                        onPressed: () {
+                          shortlistUser(
+                              context: context,
+                              id: widget.profileModel.basicPartnerInfo.userId);
+                        },
+                        child: const Text("Shortlist")),
+                  )
+                : const TextButton(onPressed: null, child: Text("Shortlisted"))
           ],
         ),
         body: Container(
@@ -192,15 +196,19 @@ class _DetailScreenState extends State<DetailScreen> {
       if (res.statusCode == 200) {
         var images = multiImageFromJson(resBody);
         //print(images.toString());
-        if (images.isNotEmpty) {
-          setState(() {
-            _images.addAll(images.map((e) => e.imageFullPath).toList());
-          });
+        if (mounted) {
+          if (images.isNotEmpty) {
+            setState(() {
+              _images.addAll(images.map((e) => e.imageFullPath).toList());
+            });
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(
+                    "Something went wrong, while fetching image from the server ${res.statusCode}")));
+          }
         }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(
-                "Something went wrong, while fetching image from the server ${res.statusCode}")));
       }
     } on Exception {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
@@ -229,6 +237,9 @@ class _DetailScreenState extends State<DetailScreen> {
           content: Text(resBody['message']),
         ),
       );
+      setState(() {
+        widget.value = true;
+      });
       //print(responseString);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

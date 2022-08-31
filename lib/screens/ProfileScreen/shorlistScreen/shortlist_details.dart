@@ -124,9 +124,11 @@ class _ShortlistDetailScreenState extends State<ShortlistDetailScreen> {
         var images = multiImageFromJson(resBody);
         //print(images.toString());
         if (images.isNotEmpty) {
-          setState(() {
-            _images = images.map((e) => e.imageFullPath).toList();
-          });
+          if (mounted) {
+            setState(() {
+              _images = images.map((e) => e.imageFullPath).toList();
+            });
+          }
         }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(

@@ -399,7 +399,7 @@ class _ProffesionEditPage2State extends State<ProffesionEditPage2> {
                       height: 10.0,
                     ),
                     const Text(
-                      'Education details',
+                      'Annual income',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(
@@ -458,31 +458,45 @@ class _ProffesionEditPage2State extends State<ProffesionEditPage2> {
   }
 
   validation() {
-    if (_selectedEducation.isEmpty && widget.proffesionModel == null) {
+    if (_selectedEducation.isEmpty &&
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.education!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter education")));
     } else if (educationDetailController.text.isEmpty &&
-        widget.proffesionModel == null) {
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.educationDetails!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter education details")));
-    } else if (_selectedJob.isEmpty && widget.proffesionModel == null) {
+    } else if (_selectedJob.isEmpty &&
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.job!.job == null)) {
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text("Please enter job")));
     } else if (jobDetailsController.text.isEmpty &&
-        widget.proffesionModel == null) {
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.jobDetails == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter job details")));
-    } else if (_selectedCountry.isEmpty && widget.proffesionModel == null) {
+    } else if (_selectedCountry.isEmpty &&
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.jobCountry!.country == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter working country")));
-    } else if (_selectedState.isEmpty && widget.proffesionModel == null) {
+    } else if (_selectedState.isEmpty &&
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.jobState!.state == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter working state")));
-    } else if (_selectedCity.isEmpty && widget.proffesionModel == null) {
+    } else if (_selectedCity.isEmpty &&
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.jobCity!.city == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter working city")));
     } else if (annualIncomController.text.isEmpty &&
-        widget.proffesionModel == null) {
+        (widget.proffesionModel == null ||
+            widget.proffesionModel!.data.annualIncome == null ||
+            widget.proffesionModel!.data.annualIncome == "0")) {
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please enter annual income")));
     } else {
@@ -511,7 +525,7 @@ class _ProffesionEditPage2State extends State<ProffesionEditPage2> {
         : _selectedCity;
     resBody1['user_annual_income'] = annualIncomController.text;
     var js = json.encode(resBody1);
-    print(js);
+    //print(js);
     final response = await http.post(
         Uri.parse(
             'https://alamelumangaimatrimony.com/api/v1/user-profile/professional-info'),

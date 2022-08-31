@@ -13,20 +13,24 @@ String profileListModelToJson(ProfileListModel data) =>
     json.encode(data.toJson());
 
 class ProfileListModel {
-  ProfileListModel({
-    required this.data,
-  });
+  ProfileListModel({required this.data, required this.shortListIds});
 
   Data data;
+  List<dynamic> shortListIds = [];
 
   factory ProfileListModel.fromJson(Map<String, dynamic> json) =>
       ProfileListModel(
-        data: Data.fromJson(json["data"]),
-      );
+          data: Data.fromJson(json["data"]),
+          shortListIds: json["shortlisted_id"]);
 
   Map<String, dynamic> toJson() => {
         "data": data.toJson(),
       };
+}
+
+class Shortlist {
+  Shortlist({required this.userId});
+  String userId;
 }
 
 class Data {

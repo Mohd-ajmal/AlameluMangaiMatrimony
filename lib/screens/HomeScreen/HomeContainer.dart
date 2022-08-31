@@ -33,6 +33,7 @@ class HomeScreen extends StatefulWidget {
 
 List<Datum> _profileMatchModel = [];
 List<Datum1> _profilesBasedOnPreference = [];
+List<dynamic> _shortlistIds = [];
 
 // filled details
 String basicFilled = "0";
@@ -206,17 +207,32 @@ class _HomeScreenState extends State<HomeScreen> {
                               itemCount: _profileMatchModel.length,
                               itemBuilder: (BuildContext context, index) {
                                 return GestureDetector(
-                                  onTap: () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => DetailScreen(
-                                        _profileMatchModel[index],
-                                        profileImage: _profileMatchModel[index]
-                                            .userBasicInfo
-                                            .imageWithPath,
+                                  onTap: () {
+                                    bool isHere = false;
+                                    for (var element in _shortlistIds) {
+                                      if (element ==
+                                          _profileMatchModel[index]
+                                              .userBasicInfo
+                                              .userId
+                                              .toString()) {
+                                        isHere = true;
+                                      }
+                                      // print(isHere);
+                                    }
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => DetailScreen(
+                                          _profileMatchModel[index],
+                                          profileImage:
+                                              _profileMatchModel[index]
+                                                  .userBasicInfo
+                                                  .imageWithPath,
+                                          value: isHere,
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
                                   child: promoCart(
                                       image: _profileMatchModel[index]
                                               .userBasicInfo
@@ -907,6 +923,7 @@ Future<List<Datum>?> getMatches() async {
       //print(res.body);
       try {
         ProfileListModel body3 = profileListModelFromJson(res.body);
+        _shortlistIds = body3.shortListIds.map((e) => e['user_id']).toList();
         _profileMatchModel = body3.data.data;
       } on Exception {
         return _profileMatchModel;
@@ -933,13 +950,13 @@ Future<List<Datum1>?> getMatchesBasedOnPreference() async {
       },
     );
     String resBody = res.body;
-    log("s" + res.statusCode.toString());
+    //log("s" + res.statusCode.toString());
     //log(res.body);
     var resBody2 = json.decode(resBody);
     //print(resBody2.runtimeType);
 
     if (res.statusCode == 200 || res.statusCode == 201) {
-      log(res.body);
+      //log(res.body);
       if (resBody2['message'] == "User Does Not Have Preference") {
         //print("summa");
         return _profilesBasedOnPreference;
